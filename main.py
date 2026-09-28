@@ -5,7 +5,7 @@ Usage:
     python main.py                     # default: autonomous object tracking
     python main.py --mode color        # standalone vision calibration (no flight)
     python main.py --mode flight-test  # basic flight manoeuvre test
-    python main.py --video asset/sky_target_drone.mp4   # custom video
+    python main.py --video asset/reaper_recon.mp4       # custom video
     python main.py --webcam            # force webcam input
     python main.py --simulate          # force simulator even if drone on network
     python main.py color               # legacy shorthand

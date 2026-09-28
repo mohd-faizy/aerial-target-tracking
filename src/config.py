@@ -103,20 +103,9 @@ def get_preset_for_video(video_path: Optional[str]) -> VisionPreset:
     if not video_path:
         return PRESETS["default"]
     lower = os.path.basename(video_path).lower()
-    if (
-        "aircraft_tracking" in lower
-        or "aircraft" in lower
-        or "military_drone_tracking" in lower
-        or "intercept" in lower
-        or "blacksea" in lower
-    ):
+    if "aircraft" in lower:
         return PRESETS["military_tracking"]
-    if (
-        "reaper_recon" in lower
-        or "reaper" in lower
-        or "military_reaper" in lower
-        or "recon" in lower
-    ):
+    if "reaper" in lower or "recon" in lower:
         return PRESETS["military_recon"]
     if "sky_target" in lower:
         return PRESETS["sky_target"]
@@ -135,17 +124,6 @@ def find_asset(filename: str) -> Optional[str]:
     if os.path.isabs(filename) and os.path.exists(filename):
         return filename
 
-    # Backwards-compatible aliases
-    aliases = {
-        "drone_demo.mp4": "drone_target_tracking.mp4",
-        "drone_demo": "drone_target_tracking.mp4",
-        "military_drone_tracking.mp4": "aircraft_tracking.mp4",
-        "military_drone_tracking.gif": "aircraft_tracking.gif",
-        "military_reaper_recon.mp4": "reaper_recon.mp4",
-        "military_reaper_recon.gif": "reaper_recon.gif",
-    }
-    target_name = aliases.get(filename, filename)
-
     here = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(here)
     cwd = os.getcwd()
@@ -153,9 +131,9 @@ def find_asset(filename: str) -> Optional[str]:
     for root in (project_root, cwd, here):
         for sub in ("asset", "assets", os.path.join("asset", "demo_gifs"), ""):
             candidate = (
-                os.path.join(root, sub, target_name)
+                os.path.join(root, sub, filename)
                 if sub
-                else os.path.join(root, target_name)
+                else os.path.join(root, filename)
             )
             if os.path.exists(candidate):
                 return os.path.abspath(candidate)

@@ -24,16 +24,11 @@ class TestConfig(unittest.TestCase):
     def test_find_existing_assets(self):
         for name in (
             "drone_target_tracking.mp4",
-            "drone_demo.mp4",  # backwards-compatible alias
             "aircraft_tracking.mp4",
             "reaper_recon.mp4",
-            "military_drone_tracking.mp4",  # backwards-compatible alias
-            "military_reaper_recon.mp4",    # backwards-compatible alias
             "drone_target_tracking.gif",
             "aircraft_tracking.gif",
             "reaper_recon.gif",
-            "military_drone_tracking.gif",  # backwards-compatible alias
-            "military_reaper_recon.gif",    # backwards-compatible alias
         ):
             path = find_asset(name)
             self.assertIsNotNone(path, f"Missing: {name}")
@@ -45,11 +40,8 @@ class TestConfig(unittest.TestCase):
 
     def test_get_preset_for_video(self):
         self.assertEqual(get_preset_for_video("aircraft_tracking.mp4").name, "military_tracking")
-        self.assertEqual(get_preset_for_video("military_drone_tracking.mp4").name, "military_tracking")
         self.assertEqual(get_preset_for_video("reaper_recon.mp4").name, "military_recon")
-        self.assertEqual(get_preset_for_video("military_reaper_recon.mp4").name, "military_recon")
         self.assertEqual(get_preset_for_video("drone_target_tracking.mp4").name, "default")
-        self.assertEqual(get_preset_for_video("drone_demo.mp4").name, "default")
         self.assertEqual(get_preset_for_video("sky_target_drone.mp4").name, "sky_target")
         self.assertEqual(get_preset_for_video("sky_uav_tracking.mp4").name, "sky_uav")
         self.assertEqual(get_preset_for_video(None).name, "default")

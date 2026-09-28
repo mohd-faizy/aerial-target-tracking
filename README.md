@@ -13,7 +13,7 @@
 
 <p align="center">
   <a href="#-key-features">Key Features</a> •
-  <a href="#-demo-showcase">Demo Showcase</a> •
+  <a href="#-demo">Demo</a> •
   <a href="#-quick-start-with-uv">Quick Start (uv)</a> •
   <a href="#-system-architecture">Architecture</a> •
   <a href="#-vision-presets">Vision Presets</a> •
@@ -23,7 +23,7 @@
 
 ---
 
-### 🎥 Tactical Aerial Tracking & Intercept (Demo)
+### 🎥 Tactical Aerial Tracking 
 <p align="center">
   <img src="asset/demo_gifs/aircraft_tracking.gif" alt="Tactical Aerial Drone Tracking Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
 </p>
@@ -54,15 +54,30 @@ The project features a **dual-engine architecture**:
 
 ---
 
-## 🎬 Demo Showcase
+## 🎬 Demo 
 
-Explore the tracking engine across diverse operational environments:
+Explore the real-time tracking engine across diverse operational environments:
 
-| Mission Profile | Real-time Vision & Tracking Demo | Details |
-| :--- | :---: | :--- |
-| **Tactical Reticle & Intercept**<br>`military_tracking` | ![Aircraft Tracking](asset/demo_gifs/aircraft_tracking.gif) | Real-time aircraft & reticle tracking with edge contour isolation and lock-on telemetry. |
-| **Autonomous Target Follow**<br>`default` | ![Drone Target Tracking](asset/demo_gifs/drone_target_tracking.gif) | Centroid lock-on with automated yaw and elevation adjustment against high-contrast moving targets. |
-| **Aerial Recon & Horizon Surveillance**<br>`military_recon` | ![Reaper Recon](asset/demo_gifs/reaper_recon.gif) | Fixed-wing UAV tracking against complex terrestrial background and variable lighting conditions. |
+### 1. Tactical Reticle & Intercept (`military_tracking` preset)
+High-precision aircraft and reticle tracking utilizing edge contour isolation and dynamic target lock telemetry.
+
+<p align="center">
+  <img src="asset/demo_gifs/aircraft_tracking.gif" alt="Tactical Reticle & Intercept Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
+</p>
+
+### 2. Autonomous Target Follow & Centroid Lock (`default` preset)
+Closed-loop centroid tracking with automated yaw rotation and elevation adjustments maintaining moving targets inside the central deadzone.
+
+<p align="center">
+  <img src="asset/demo_gifs/drone_target_tracking.gif" alt="Autonomous Target Follow Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
+</p>
+
+### 3. Aerial Reconnaissance & Horizon Surveillance (`military_recon` preset)
+Fixed-wing UAV tracking against complex terrain textures, altitude gradients, and shifting horizon lighting conditions.
+
+<p align="center">
+  <img src="asset/demo_gifs/reaper_recon.gif" alt="Aerial Reconnaissance Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
+</p>
 
 ---
 
@@ -71,35 +86,40 @@ Explore the tracking engine across diverse operational environments:
 ```mermaid
 flowchart TD
     subgraph Input ["Video Capture Layer"]
-        A1[Physical Drone UDP Stream\n192.168.10.1:8889] --> B{Drone Connected?}
-        A2[Simulated Video File\nasset/*.mp4] --> B
-        A3[Live USB Webcam\nDevice 0] --> B
+        A1["Physical Drone UDP Stream (192.168.10.1:8889)"] --> B{"Drone Connected?"}
+        A2["Simulated Video File (asset/*.mp4)"] --> B
+        A3["Live USB Webcam (Device 0)"] --> B
     end
 
-    B -- Yes --> C[Hardware UDP Socket Driver]
-    B -- No / --simulate --> D[Virtual Drone Simulator]
+    B -->|Yes| C["Hardware UDP Socket Driver"]
+    B -->|No or Offline| D["Virtual Drone Simulator"]
 
     subgraph Vision ["Computer Vision Pipeline"]
-        C & D --> E[Frame Acquisition: 640x480]
-        E --> F[Color Thresholding: HSV Mask]
-        F --> G[Gaussian Smoothing & Canny Edge Detection]
-        G --> H[Morphological Dilation]
-        H --> I[Contour Extraction & Area Filtering]
-        I --> J[Centroid & Target Coordinates Calculation]
+        C --> E["Frame Acquisition (640x480)"]
+        D --> E
+        E --> F["Color Thresholding (HSV Mask)"]
+        F --> G["Gaussian Smoothing & Canny Edge Detection"]
+        G --> H["Morphological Dilation"]
+        H --> I["Contour Extraction & Area Filtering"]
+        I --> J["Centroid & Target Coordinates Calculation"]
     end
 
     subgraph Control ["Deadzone Feedback & Flight Guidance"]
-        J --> K{Inside Central Deadzone?}
-        K -- Centroid < X - Deadzone --> L1[Rotate Left / Yaw Counter-Clockwise]
-        K -- Centroid > X + Deadzone --> L2[Rotate Right / Yaw Clockwise]
-        K -- Centroid < Y - Deadzone --> L3[Ascend / Elevation UP]
-        K -- Centroid > Y + Deadzone --> L4[Descend / Elevation DOWN]
-        K -- Centroid In Deadzone Window --> L5[LOCKED ON TARGET: Hover Stable]
+        J --> K{"Inside Central Deadzone?"}
+        K -->|Target Left| L1["Rotate Left (Yaw CCW)"]
+        K -->|Target Right| L2["Rotate Right (Yaw CW)"]
+        K -->|Target Above| L3["Ascend (Throttle UP)"]
+        K -->|Target Below| L4["Descend (Throttle DOWN)"]
+        K -->|Inside Deadzone| L5["LOCKED ON TARGET (Hover Stable)"]
     end
 
     subgraph Output ["Display & Flight Telemetry"]
-        L1 & L2 & L3 & L4 & L5 --> M[Send RC Velocities: lr, fb, ud, yaw]
-        M --> N[Render 2x2 Multi-View Quad Canvas + HUD]
+        L1 --> M["Send RC Velocities (lr, fb, ud, yaw)"]
+        L2 --> M
+        L3 --> M
+        L4 --> M
+        L5 --> M
+        M --> N["Render 2x2 Multi-View Quad Canvas + HUD"]
     end
 ```
 
@@ -230,21 +250,21 @@ During active camera/simulator streaming, use the following hotkeys:
 
 ## ⚙️ Vision Presets
 
-The system includes pre-configured vision tuning profiles located in [src/config.py](src/config.py):
+The system includes pre-configured vision tuning profiles located in [src/config.py](src/config.py), auto-detected based on the loaded video asset:
 
-| Preset | Target Description | HSV Bounds (H, S, V) | Canny Thresholds | Min Area |
-| :--- | :--- | :--- | :--- | :--- |
-| `default` | High-visibility yellow/green objects & demo balls | `[29-65, 85-255, 60-255]` | `(166, 171)` | 1000 px |
-| `sky_target` | Quadcopter drone in open airspace | `[20-80, 50-255, 40-255]` | `(100, 200)` | 800 px |
-| `sky_uav` | Fixed-wing UAV on horizon | `[20-80, 50-255, 40-255]` | `(100, 200)` | 800 px |
-| `military_tracking` | MQ-9 onboard camera HUD targeting aircraft / reticle | `[0-180, 0-255, 0-255]` | `(40, 120)` | 80 px |
-| `military_recon` | Combat UAV tracking against ground terrain | `[0-180, 0-95, 30-160]` | `(40, 120)` | 600 px |
+| Preset | Target Description | Matched Asset File | HSV Bounds (H, S, V) | Canny Thresholds | Min Area |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| `military_tracking` | MQ-9 onboard camera HUD targeting aircraft / reticle | `asset/aircraft_tracking.mp4` | `[0-180, 0-255, 0-255]` | `(40, 120)` | 80 px |
+| `default` | High-visibility yellow/green objects & demo targets | `asset/drone_target_tracking.mp4` | `[29-65, 85-255, 60-255]` | `(166, 171)` | 1000 px |
+| `military_recon` | Combat UAV tracking against ground terrain | `asset/reaper_recon.mp4` | `[0-180, 0-95, 30-160]` | `(40, 120)` | 600 px |
+| `sky_target` | Quadcopter drone in open airspace | *(Webcam / Custom aerial)* | `[20-80, 50-255, 40-255]` | `(100, 200)` | 800 px |
+| `sky_uav` | Fixed-wing UAV on horizon | *(Webcam / Custom aerial)* | `[20-80, 50-255, 40-255]` | `(100, 200)` | 800 px |
 
 To force a specific preset profile via the command line:
 ```bash
 uv run python main.py --preset military_tracking
 uv run python main.py --preset military_recon
-uv run python main.py --preset sky_target
+uv run python main.py --preset default
 ```
 
 ---
@@ -360,10 +380,18 @@ Contributions, feature requests, and bug reports are welcome!
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+This repository is licensed under the **MIT License**. See the [`LICENSE`](LICENSE) file for complete details.
 
 ---
 
+## 🔗 Connect with Me
+
 <div align="center">
-  <sub>Built with ❤️ by <a href="https://github.com/mohd-faizy">mohd-faizy</a> for the computer vision and robotics community.</sub>
+
+[![Portfolio](https://img.shields.io/badge/Portfolio-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://mohdfaizy.vercel.app)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mohd-faizy/)
+[![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mohd-faizy)
+[![Credly](https://img.shields.io/badge/Credly-FF6B00?style=for-the-badge&logo=credly&logoColor=white)](https://www.credly.com/users/mohd-faizy)
+[![Twitter](https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/F4izy)
+[![Stack Exchange](https://img.shields.io/badge/Stack_Exchange-1E5397?style=for-the-badge&logo=stack-exchange&logoColor=white)](https://ai.stackexchange.com/users/36737/faizy)
 </div>
