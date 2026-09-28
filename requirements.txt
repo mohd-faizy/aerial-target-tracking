@@ -1,0 +1,6 @@
+# Drone Vision Object Tracking Requirements
+# Core computer vision & video stream processing
+opencv-contrib-python>=4.8.0
+
+# Scientific computing & multi-dimensional array operations
+numpy>=1.24.0
