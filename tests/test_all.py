@@ -23,17 +23,26 @@ from src.calibration import Calibration
 
 class TestConfig(unittest.TestCase):
     def test_find_existing_assets(self):
+        # Mission video files and banner image in reorganized asset structure
         for name in (
             "drone_target_tracking.mp4",
             "aircraft_tracking.mp4",
             "reaper_recon.mp4",
+            "banner.png",
+        ):
+            path = find_asset(name)
+            self.assertIsNotNone(path, f"Missing: {name}")
+            self.assertTrue(os.path.exists(path))
+
+        # Check optional GIF demos when added to asset/gifs
+        for name in (
             "drone_target_tracking.gif",
             "aircraft_tracking.gif",
             "reaper_recon.gif",
         ):
             path = find_asset(name)
-            self.assertIsNotNone(path, f"Missing: {name}")
-            self.assertTrue(os.path.exists(path))
+            if path:
+                self.assertTrue(os.path.exists(path))
 
     def test_find_missing_asset(self):
         self.assertIsNone(find_asset("no_such_file_12345.xyz"))

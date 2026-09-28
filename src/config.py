@@ -230,7 +230,15 @@ def find_asset(filename: str) -> Optional[str]:
     cwd = os.getcwd()
 
     for root in (project_root, cwd, here):
-        for sub in ("asset", "assets", os.path.join("asset", "demo_gifs"), ""):
+        for sub in (
+            os.path.join("asset", "videos"),
+            os.path.join("asset", "gifs"),
+            os.path.join("asset", "img"),
+            os.path.join("asset", "demo_gifs"),
+            "asset",
+            "assets",
+            "",
+        ):
             candidate = (
                 os.path.join(root, sub, filename)
                 if sub

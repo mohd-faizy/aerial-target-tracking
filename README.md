@@ -1,15 +1,23 @@
-<div align="center">
-
 # 🛸 Aerial Target Tracking
 
-**Real-time closed-loop computer vision tracking, dynamic HSV/edge calibration, and autonomous flight control for aerial drones.**
+<div align="center"> 
+  <img src="asset/img/banner.png" width="750" alt="banner" style="border-radius: 10px;"> 
+</div>
 
-[![Python Version](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.14-blue?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Package Manager: uv](https://img.shields.io/badge/Environment-uv%20Package%20Manager-DE5FE9?style=for-the-badge&logo=astral&logoColor=white)](https://github.com/astral-sh/uv)
-[![OpenCV](https://img.shields.io/badge/OpenCV-contrib--python-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)](https://opencv.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
-[![Tests Passing](https://img.shields.io/badge/Tests-23%2F23%20Passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/mohd-faizy/aerial-target-tracking)
+<br>
+
+
+<div align="center">
+
+[![Author](https://img.shields.io/badge/Author-mohd--faizy-red?style=for-the-badge&logo=github&logoColor=white)](https://github.com/mohd-faizy)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![OpenCV](https://img.shields.io/badge/OpenCV-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)](https://opencv.org/)
+[![NumPy](https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white)](https://numpy.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/mohd-faizy/aerial-target-tracking?style=for-the-badge&logo=git&logoColor=white)](https://github.com/mohd-faizy/aerial-target-tracking/commits/main)
+[![GitHub Issues](https://img.shields.io/github/issues/mohd-faizy/aerial-target-tracking?style=for-the-badge&logo=github&color=yellow)](https://github.com/mohd-faizy/aerial-target-tracking/issues)
+[![Stars](https://img.shields.io/github/stars/mohd-faizy/aerial-target-tracking?style=for-the-badge&logo=github&color=gold)](https://github.com/mohd-faizy/aerial-target-tracking/stargazers)
+[![Contributions Welcome](https://img.shields.io/badge/Contributions-Welcome-0059b3?style=for-the-badge&logo=handshake&logoColor=white)](https://github.com/mohd-faizy/aerial-target-tracking)
 
 <p align="center">
   <a href="#-key-features">Key Features</a> •
@@ -56,35 +64,35 @@ Explore the real-time tracking engine across diverse operational environments:
 Top-down aerial drone surveillance locking onto a moving main battle tank (MBT) navigating desert terrain, calculating velocity, heading, and deadzone correction maneuvers.
 
 <p align="center">
-  <img src="asset/demo_gifs/tank_tracking.gif" alt="Moving Armored Tank Tracking Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
+  <img src="asset/gifs/tank_tracking.gif" alt="Moving Armored Tank Tracking Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
 </p>
 
 ### 2. Tactical Military Vehicle & Convoy Tracking (`military_vehicle` preset)
 High-angle aerial reconnaissance tracking an armored combat vehicle / convoy lead advancing along tactical terrain with motion trajectory breadcrumbs.
 
 <p align="center">
-  <img src="asset/demo_gifs/military_vehicle_tracking.gif" alt="Tactical Military Vehicle Tracking Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
+  <img src="asset/gifs/military_vehicle_tracking.gif" alt="Tactical Military Vehicle Tracking Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
 </p>
 
 ### 3. Tactical Reticle & Intercept (`military_tracking` preset)
 High-precision aircraft and reticle tracking utilizing edge contour isolation and dynamic target lock telemetry.
 
 <p align="center">
-  <img src="asset/demo_gifs/aircraft_tracking.gif" alt="Tactical Reticle & Intercept Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
+  <img src="asset/gifs/aircraft_tracking.gif" alt="Tactical Reticle & Intercept Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
 </p>
 
 ### 4. Autonomous Target Follow & Centroid Lock (`default` preset)
 Closed-loop centroid tracking with automated yaw rotation and elevation adjustments maintaining moving targets inside the central deadzone.
 
 <p align="center">
-  <img src="asset/demo_gifs/drone_target_tracking.gif" alt="Autonomous Target Follow Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
+  <img src="asset/gifs/drone_target_tracking.gif" alt="Autonomous Target Follow Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
 </p>
 
 ### 5. Aerial Reconnaissance & Horizon Surveillance (`military_recon` preset)
 Fixed-wing UAV tracking against complex terrain textures, altitude gradients, and shifting horizon lighting conditions.
 
 <p align="center">
-  <img src="asset/demo_gifs/reaper_recon.gif" alt="Aerial Reconnaissance Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
+  <img src="asset/gifs/reaper_recon.gif" alt="Aerial Reconnaissance Demo" width="900" style="border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);" />
 </p>
 
 ---
@@ -95,7 +103,7 @@ Fixed-wing UAV tracking against complex terrain textures, altitude gradients, an
 flowchart TD
     subgraph Input ["Video Capture Layer"]
         A1["Physical Drone UDP Stream (192.168.10.1:8889)"] --> B{"Drone Connected?"}
-        A2["Simulated Video File (asset/*.mp4)"] --> B
+        A2["Simulated Video File (asset/videos/*.mp4)"] --> B
         A3["Live USB Webcam (Device 0)"] --> B
     end
 
@@ -216,9 +224,9 @@ uv run python main.py
 uv run python main.py --webcam
 
 # Run tracking on a specific video
-uv run python main.py --video asset/tank_tracking.mp4
-uv run python main.py --video asset/military_vehicle_tracking.mp4
-uv run python main.py --video asset/aircraft_tracking.mp4
+uv run python main.py --video asset/videos/aircraft_tracking.mp4
+uv run python main.py --video asset/videos/drone_target_tracking.mp4
+uv run python main.py --video asset/videos/reaper_recon.mp4
 
 # Force simulation mode explicitly (even if physical drone network is present)
 uv run python main.py --simulate
@@ -231,7 +239,7 @@ Opens the video feed alongside the interactive HSV & parameter tuning trackbars 
 uv run python main.py --mode color
 
 # Calibrate against a custom video
-uv run python main.py --mode color --video asset/tank_tracking.mp4
+uv run python main.py --mode color --video asset/videos/reaper_recon.mp4
 
 # Calibrate using live webcam
 uv run python main.py --mode color --webcam
@@ -329,18 +337,14 @@ Host Computer (Port 11111) ◄── H.264 Video Stream ──── Drone Video
 ```text
 aerial-target-tracking/
 ├── .venv/                      # Virtual environment (managed by uv)
-├── asset/                      # Video assets and demo media
-│   ├── demo_gifs/              # Visual showcase recordings
-│   │   ├── aircraft_tracking.gif
-│   │   ├── drone_target_tracking.gif
-│   │   ├── military_vehicle_tracking.gif
-│   │   ├── reaper_recon.gif
-│   │   └── tank_tracking.gif
-│   ├── aircraft_tracking.mp4
-│   ├── drone_target_tracking.mp4
-│   ├── military_vehicle_tracking.mp4
-│   ├── reaper_recon.mp4
-│   └── tank_tracking.mp4
+├── asset/                      # Project media & demo assets
+│   ├── gifs/                   # Visual showcase recordings (GIFs)
+│   ├── img/                    # Project branding & banners
+│   │   └── banner.png
+│   └── videos/                 # Target tracking mission video feeds
+│       ├── aircraft_tracking.mp4
+│       ├── drone_target_tracking.mp4
+│       └── reaper_recon.mp4
 ├── src/                        # Core application package
 │   ├── __init__.py
 │   ├── calibration.py          # OpenCV dynamic trackbar manager
