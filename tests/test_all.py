@@ -46,6 +46,11 @@ class TestConfig(unittest.TestCase):
         self.assertEqual(get_preset_for_video("sky_uav_tracking.mp4").name, "sky_uav")
         self.assertEqual(get_preset_for_video(None).name, "default")
 
+    def test_preset_default_videos(self):
+        self.assertEqual(PRESETS["military_tracking"].default_video, "aircraft_tracking.mp4")
+        self.assertEqual(PRESETS["military_recon"].default_video, "reaper_recon.mp4")
+        self.assertEqual(PRESETS["default"].default_video, "drone_target_tracking.mp4")
+
 
 # ── Simulator ────────────────────────────────────────────────────────
 

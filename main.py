@@ -197,10 +197,25 @@ def main():
     elif args.mode:
         mode = args.mode
 
-    video = args.video or find_asset("aircraft_tracking.mp4")
-    # video = args.video or find_asset("reaper_recon.mp4")
-    # video = args.video or find_asset("drone_target_tracking.mp4")
-    preset = PRESETS.get(args.preset) if args.preset else get_preset_for_video(video if not args.webcam else None)
+    # Resolve video source and vision preset
+    if args.webcam:
+        video = None
+        if args.preset:
+            preset = PRESETS.get(args.preset, PRESETS["aircraft"])
+        else:
+            preset = PRESETS["aircraft"]
+            print("[INFO] Webcam Mode: Defaulting to aircraft tracking preset ('aircraft').")
+            print("[INFO] To track a yellow-green demo ball instead, pass: --preset default\n")
+    elif args.video:
+        video = find_asset(args.video) or args.video
+        preset = PRESETS.get(args.preset) if args.preset else get_preset_for_video(video)
+    elif args.preset:
+        preset = PRESETS.get(args.preset, PRESETS["default"])
+        default_video_name = preset.default_video or "aircraft_tracking.mp4"
+        video = find_asset(default_video_name)
+    else:
+        preset = PRESETS["military_tracking"]
+        video = find_asset(preset.default_video or "aircraft_tracking.mp4")
 
     print(f"Starting Drone Vision Object Tracking [{mode.upper()}]")
     print(f"Preset: {preset.name} — {preset.description}")

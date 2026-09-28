@@ -99,11 +99,12 @@ def detect_target(
     min_area: float,
     max_area: float = 45000.0,
 ) -> TargetInfo:
-    """Find the best candidate contour exceeding *min_area*, rejecting border artifacts."""
-    contours, _ = cv2.findContours(edge_img, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    """Find the best candidate contour exceeding *min_area*, rejecting border & screen artifacts."""
+    # Use RETR_TREE so targets inside screens, phone displays, or window frames are not discarded
+    contours, _ = cv2.findContours(edge_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     fh, fw = edge_img.shape[:2]
 
-    # Pass 1: Smart filtering (excludes screen borders, letterboxes, and wide horizon/wing bands)
+    # Pass 1: Smart filtering (excludes screen borders, phone bezels, letterboxes, and wide horizon/wing bands)
     for cnt in sorted(contours, key=cv2.contourArea, reverse=True):
         area = cv2.contourArea(cnt)
         if area < min_area or area > max_area:
@@ -120,6 +121,13 @@ def detect_target(
             continue
         # Ignore horizontal bands (cloud lines, wing edges: w > 350 and thin h < 60)
         if w > 350 and h < 60:
+            continue
+        # Ignore giant rectangular frames (phone bezels, monitor screens, posters filling > 22% of frame)
+        if (w * h) > (fw * fh * 0.22):
+            continue
+        # Ignore rectangular device displays / sheets of paper (large 4-vertex shapes with near-perfect solidity)
+        solidity = area / float(w * h) if (w * h) > 0 else 0.0
+        if area > 10000 and len(approx) == 4 and solidity > 0.85:
             continue
 
         return TargetInfo(True, x + w // 2, y + h // 2, x, y, w, h, area, cnt)
@@ -218,8 +226,16 @@ def draw_target_overlay(img: np.ndarray, target: TargetInfo, direction: Directio
     if direction in _DIR_LABEL:
         cv2.putText(img, _DIR_LABEL[direction], (20, 50),
                     cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 3)
-        p1, p2 = _DIR_RECT[direction](hw, hh, DEAD_ZONE)
-        cv2.rectangle(img, p1, p2, (0, 0, 255), cv2.FILLED)
+        (x1, y1), (x2, y2) = _DIR_RECT[direction](hw, hh, DEAD_ZONE)
+        x1, x2 = max(0, min(x1, FRAME_WIDTH)), max(0, min(x2, FRAME_WIDTH))
+        y1, y2 = max(0, min(y1, FRAME_HEIGHT)), max(0, min(y2, FRAME_HEIGHT))
+        if x2 > x1 and y2 > y1:
+            sub = img[y1:y2, x1:x2]
+            red_tint = np.zeros_like(sub)
+            red_tint[:] = (0, 0, 255)
+            # Semi-transparent red tint (28% red, 72% original feed) so targets remain visible
+            cv2.addWeighted(red_tint, 0.28, sub, 0.72, 0, sub)
+            cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
     else:
         cv2.putText(img, " LOCKED ON TARGET ", (20, 50),
                     cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)

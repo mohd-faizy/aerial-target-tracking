@@ -57,6 +57,7 @@ class VisionPreset:
     edge_thresholds: Tuple[int, int]  # (thresh1, thresh2)
     min_area: int
     max_area: int = 40000
+    default_video: Optional[str] = None
 
 
 PRESETS: Dict[str, VisionPreset] = {
@@ -66,20 +67,15 @@ PRESETS: Dict[str, VisionPreset] = {
         hsv_bounds=(29, 65, 85, 255, 60, 255),
         edge_thresholds=(166, 171),
         min_area=1000,
+        default_video="drone_target_tracking.mp4",
     ),
-    "sky_target": VisionPreset(
-        name="sky_target",
-        description="Quadcopter drone in open sky",
-        hsv_bounds=(20, 80, 50, 255, 40, 255),
-        edge_thresholds=(100, 200),
-        min_area=800,
-    ),
-    "sky_uav": VisionPreset(
-        name="sky_uav",
-        description="Fixed-wing UAV tracking on horizon",
-        hsv_bounds=(20, 80, 50, 255, 40, 255),
-        edge_thresholds=(100, 200),
-        min_area=800,
+    "aircraft": VisionPreset(
+        name="aircraft",
+        description="Aerial fighter jet & aircraft tracking (high-contrast contour lock)",
+        hsv_bounds=(0, 180, 0, 255, 0, 255),
+        edge_thresholds=(40, 120),
+        min_area=80,
+        default_video="aircraft_tracking.mp4",
     ),
     "military_tracking": VisionPreset(
         name="military_tracking",
@@ -87,6 +83,7 @@ PRESETS: Dict[str, VisionPreset] = {
         hsv_bounds=(0, 180, 0, 255, 0, 255),
         edge_thresholds=(40, 120),
         min_area=80,
+        default_video="aircraft_tracking.mp4",
     ),
     "military_recon": VisionPreset(
         name="military_recon",
@@ -94,6 +91,23 @@ PRESETS: Dict[str, VisionPreset] = {
         hsv_bounds=(0, 180, 0, 95, 30, 160),
         edge_thresholds=(40, 120),
         min_area=600,
+        default_video="reaper_recon.mp4",
+    ),
+    "sky_target": VisionPreset(
+        name="sky_target",
+        description="Quadcopter drone / aircraft in open sky",
+        hsv_bounds=(0, 180, 0, 255, 0, 255),
+        edge_thresholds=(40, 120),
+        min_area=100,
+        default_video="aircraft_tracking.mp4",
+    ),
+    "sky_uav": VisionPreset(
+        name="sky_uav",
+        description="Fixed-wing UAV tracking on horizon",
+        hsv_bounds=(0, 180, 0, 255, 0, 255),
+        edge_thresholds=(40, 120),
+        min_area=100,
+        default_video="aircraft_tracking.mp4",
     ),
 }
 

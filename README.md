@@ -210,8 +210,14 @@ uv run python main.py --simulate
 # Run tracking on a specific demo video
 uv run python main.py --video asset/aircraft_tracking.mp4
 
-# Run tracking using live webcam
+# Run tracking using live webcam (defaults to aircraft tracking)
 uv run python main.py --webcam
+
+# Run tracking using live webcam for yellow-green demo ball
+uv run python main.py --webcam --preset default
+
+# Run tracking using live webcam for dark silhouette / ground recon
+uv run python main.py --webcam --preset military_recon
 ```
 
 ### 2. Standalone Vision Calibration Mode (No Flight)
@@ -254,14 +260,16 @@ The system includes pre-configured vision tuning profiles located in [src/config
 
 | Preset | Target Description | Matched Asset File | HSV Bounds (H, S, V) | Canny Thresholds | Min Area |
 | :--- | :--- | :--- | :--- | :--- | :--- |
+| `aircraft` | Aerial fighter jet & aircraft tracking | `asset/aircraft_tracking.mp4` | `[0-180, 0-255, 0-255]` | `(40, 120)` | 80 px |
 | `military_tracking` | MQ-9 onboard camera HUD targeting aircraft / reticle | `asset/aircraft_tracking.mp4` | `[0-180, 0-255, 0-255]` | `(40, 120)` | 80 px |
-| `default` | High-visibility yellow/green objects & demo targets | `asset/drone_target_tracking.mp4` | `[29-65, 85-255, 60-255]` | `(166, 171)` | 1000 px |
 | `military_recon` | Combat UAV tracking against ground terrain | `asset/reaper_recon.mp4` | `[0-180, 0-95, 30-160]` | `(40, 120)` | 600 px |
-| `sky_target` | Quadcopter drone in open airspace | *(Webcam / Custom aerial)* | `[20-80, 50-255, 40-255]` | `(100, 200)` | 800 px |
-| `sky_uav` | Fixed-wing UAV on horizon | *(Webcam / Custom aerial)* | `[20-80, 50-255, 40-255]` | `(100, 200)` | 800 px |
+| `default` | High-visibility yellow/green objects & demo targets | `asset/drone_target_tracking.mp4` | `[29-65, 85-255, 60-255]` | `(166, 171)` | 1000 px |
+| `sky_target` | Quadcopter drone in open airspace | *(Webcam / Custom aerial)* | `[0-180, 0-255, 0-255]` | `(40, 120)` | 100 px |
+| `sky_uav` | Fixed-wing UAV on horizon | *(Webcam / Custom aerial)* | `[0-180, 0-255, 0-255]` | `(40, 120)` | 100 px |
 
 To force a specific preset profile via the command line:
 ```bash
+uv run python main.py --preset aircraft
 uv run python main.py --preset military_tracking
 uv run python main.py --preset military_recon
 uv run python main.py --preset default
@@ -273,7 +281,7 @@ uv run python main.py --preset default
 
 ```
 usage: main.py [-h] [--mode {tracking,color,flight-test}]
-               [--preset {default,sky_target,sky_uav,military_tracking,military_recon}]
+               [--preset {default,aircraft,military_tracking,military_recon,sky_target,sky_uav}]
                [--video VIDEO] [--webcam] [--simulate]
                [legacy_mode]
 
