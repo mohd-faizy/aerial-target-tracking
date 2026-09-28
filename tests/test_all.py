@@ -1,4 +1,4 @@
-"""All tests for the drone-vision-object-tracking project."""
+"""All tests for the aerial-target-tracking project."""
 import os
 import unittest
 

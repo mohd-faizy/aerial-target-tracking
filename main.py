@@ -1,5 +1,5 @@
 """
-Autonomous Drone Vision & Object Tracking — unified launcher.
+Autonomous Aerial Target Tracking — unified launcher.
 
 Usage:
     python main.py                     # default: autonomous object tracking
@@ -174,7 +174,7 @@ def run_flight_test(video_path):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Drone Vision Object Tracking",
+        description="Aerial Target Tracking",
         epilog="Modes: tracking (default) | color | flight-test",
     )
     parser.add_argument("legacy_mode", nargs="?", default=None)
@@ -217,7 +217,7 @@ def main():
         preset = PRESETS["military_tracking"]
         video = find_asset(preset.default_video or "aircraft_tracking.mp4")
 
-    print(f"Starting Drone Vision Object Tracking [{mode.upper()}]")
+    print(f"Starting Aerial Target Tracking [{mode.upper()}]")
     print(f"Preset: {preset.name} — {preset.description}")
     print("Controls: 'v' toggle video/webcam · 'q'/Esc quit\n")
 

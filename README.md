@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🛸 Drone Vision & Autonomous Object Tracking
+# 🛸 Aerial Target Tracking
 
 **Real-time closed-loop computer vision tracking, dynamic HSV/edge calibration, and autonomous flight control for aerial drones.**
 
@@ -9,7 +9,7 @@
 [![OpenCV](https://img.shields.io/badge/OpenCV-contrib--python-5C3EE8?style=for-the-badge&logo=opencv&logoColor=white)](https://opencv.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge&logo=opensourceinitiative&logoColor=white)](LICENSE)
 [![Tests Passing](https://img.shields.io/badge/Tests-20%2F20%20Passed-brightgreen?style=for-the-badge&logo=pytest&logoColor=white)](tests/)
-[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/mohd-faizy/drone-vision-object-tracking)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/mohd-faizy/aerial-target-tracking)
 
 <p align="center">
   <a href="#-key-features">Key Features</a> •
@@ -34,7 +34,7 @@
 
 ## 📌 Overview
 
-**Drone Vision Object Tracking** is a robust, modular computer vision and autonomous flight guidance system engineered for unmanned aerial vehicles (UAVs). It pairs high-speed frame processing with a deadzone feedback control loop, enabling aerial platforms to identify, lock onto, and dynamically pursue moving targets in real time.
+**Aerial Target Tracking** is a robust, modular computer vision and autonomous flight guidance system engineered for unmanned aerial vehicles (UAVs). It pairs high-speed frame processing with a deadzone feedback control loop, enabling aerial platforms to identify, lock onto, and dynamically pursue moving targets in real time.
 
 The project features a **dual-engine architecture**:
 1. **Physical Drone Driver**: Real-time UDP telemetry and RC control socket streaming (DJI Tello compatible).
@@ -164,8 +164,8 @@ pip install uv
 ### 2. Clone the Repository
 
 ```bash
-git clone https://github.com/mohd-faizy/drone-vision-object-tracking.git
-cd drone-vision-object-tracking
+git clone https://github.com/mohd-faizy/aerial-target-tracking.git
+cd aerial-target-tracking
 ```
 
 ### 3. Create Virtual Environment & Install Dependencies
@@ -285,7 +285,7 @@ usage: main.py [-h] [--mode {tracking,color,flight-test}]
                [--video VIDEO] [--webcam] [--simulate]
                [legacy_mode]
 
-Drone Vision Object Tracking
+Aerial Target Tracking
 
 positional arguments:
   legacy_mode           Legacy shorthand mode ('color', 'flight-test')
@@ -323,7 +323,7 @@ Host Computer (Port 11111) ◄── H.264 Video Stream ──── Drone Video
 ## 📂 Project Structure
 
 ```text
-drone-vision-object-tracking/
+aerial-target-tracking/
 ├── .venv/                      # Virtual environment (managed by uv)
 ├── asset/                      # Video assets and demo media
 │   ├── demo_gifs/              # Visual showcase recordings

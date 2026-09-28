@@ -1,1 +1,1 @@
-"""Drone Vision Object Tracking package."""
+"""Aerial Target Tracking package."""

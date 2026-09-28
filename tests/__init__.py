@@ -1,1 +1,1 @@
-"""Unit tests for drone-vision-object-tracking."""
+"""Unit tests for aerial-target-tracking."""

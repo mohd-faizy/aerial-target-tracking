@@ -1,7 +1,7 @@
 [project]
-name = "drone-vision-object-tracking"
+name = "aerial-target-tracking"
 version = "0.1.0"
-description = "Add your description here"
+description = "Real-time closed-loop computer vision tracking and autonomous flight guidance for UAVs"
 readme = "README.md"
 requires-python = ">=3.14"
 dependencies = [
