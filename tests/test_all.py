@@ -14,6 +14,7 @@ from src.vision import (
     HSVBounds, EdgeThresholds, TargetInfo, Direction,
     apply_hsv_mask, detect_edges, detect_target,
     compute_direction, direction_to_rc, process_frame,
+    MovingTargetTracker, classify_target,
 )
 from src.calibration import Calibration
 
@@ -41,6 +42,9 @@ class TestConfig(unittest.TestCase):
     def test_get_preset_for_video(self):
         self.assertEqual(get_preset_for_video("aircraft_tracking.mp4").name, "military_tracking")
         self.assertEqual(get_preset_for_video("reaper_recon.mp4").name, "military_recon")
+        self.assertEqual(get_preset_for_video("tank_tracking.mp4").name, "tank")
+        self.assertEqual(get_preset_for_video("military_vehicle_tracking.mp4").name, "military_vehicle")
+        self.assertEqual(get_preset_for_video("tactical_convoy.mp4").name, "military_vehicle")
         self.assertEqual(get_preset_for_video("drone_target_tracking.mp4").name, "default")
         self.assertEqual(get_preset_for_video("sky_target_drone.mp4").name, "sky_target")
         self.assertEqual(get_preset_for_video("sky_uav_tracking.mp4").name, "sky_uav")
@@ -49,6 +53,7 @@ class TestConfig(unittest.TestCase):
     def test_preset_default_videos(self):
         self.assertEqual(PRESETS["military_tracking"].default_video, "aircraft_tracking.mp4")
         self.assertEqual(PRESETS["military_recon"].default_video, "reaper_recon.mp4")
+        self.assertEqual(PRESETS["tank"].default_video, "aircraft_tracking.mp4")
         self.assertEqual(PRESETS["default"].default_video, "drone_target_tracking.mp4")
 
 
@@ -147,6 +152,48 @@ class TestVision(unittest.TestCase):
         self.assertTrue(target.found, "Reaper target should be found in reaper_recon.mp4")
         self.assertGreater(target.cx, 0)
         self.assertGreater(target.cy, 0)
+
+    def test_moving_target_tracker(self):
+        tracker = MovingTargetTracker(max_history=5)
+        # Frame 1: target at (100, 100)
+        t1 = TargetInfo(found=True, cx=100, cy=100)
+        res1 = tracker.update(t1, "TEST_TGT")
+        self.assertEqual(res1.label, "TEST_TGT")
+        self.assertEqual(res1.speed, 0.0)
+        self.assertEqual(len(tracker.trajectory), 1)
+
+        # Frame 2: target moves to (115, 100) -> moving East (+x)
+        t2 = TargetInfo(found=True, cx=115, cy=100)
+        res2 = tracker.update(t2)
+        self.assertGreater(res2.vx, 0.0)
+        self.assertEqual(res2.vy, 0.0)
+        self.assertGreater(res2.speed, 0.0)
+        self.assertEqual(res2.heading_deg, 0.0)
+        self.assertEqual(len(tracker.trajectory), 2)
+
+        # Frame 3: teleportation hop (jump 100px) -> resets velocity and trajectory
+        t3 = TargetInfo(found=True, cx=250, cy=100)
+        res3 = tracker.update(t3)
+        self.assertEqual(res3.speed, 0.0)
+        self.assertEqual(len(tracker.trajectory), 1)
+
+        # Frame 4: target not found -> resets trajectory
+        t4 = TargetInfo(found=False)
+        tracker.update(t4)
+        self.assertEqual(len(tracker.trajectory), 0)
+
+    def test_classify_target(self):
+        # Stationary target -> "TARGET"
+        static_label = classify_target(cx=320, cy=240, speed=0.0, requested_mode="AUTO")
+        self.assertEqual(static_label, "TARGET")
+
+        # Moving target (speed > 1.2) -> "MOVING TARGET"
+        moving_label = classify_target(cx=320, cy=240, speed=3.5, requested_mode="AUTO")
+        self.assertEqual(moving_label, "MOVING TARGET")
+
+        # User-forced mode override
+        forced = classify_target(cx=320, cy=240, requested_mode="CUSTOM_TGT")
+        self.assertEqual(forced, "CUSTOM_TGT")
 
 
 # ── Direction / tracking logic ───────────────────────────────────────

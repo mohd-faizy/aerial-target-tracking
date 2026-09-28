@@ -24,7 +24,9 @@ import cv2
 
 from src.config import find_asset, PRESETS, get_preset_for_video
 from src.drone import create_drone
-from src.vision import process_frame, draw_hud, direction_to_rc, Direction
+from src.vision import (
+    process_frame, draw_hud, direction_to_rc, Direction, MovingTargetTracker,
+)
 from src.calibration import Calibration
 
 
@@ -57,6 +59,8 @@ def run_tracking(video_path, webcam=False, force_sim=False, preset=None):
 
     taken_off = False
     last_dir = Direction.NONE
+    tracker = MovingTargetTracker()
+    target_label = getattr(active_preset, "target_label", "AUTO")
 
     try:
         while True:
@@ -67,6 +71,7 @@ def run_tracking(video_path, webcam=False, force_sim=False, preset=None):
             cal.update()
             stacked, target, direction = process_frame(
                 frame, cal.hsv, cal.edge, cal.min_area, last_dir,
+                tracker=tracker, target_label=target_label,
             )
             last_dir = direction
             lr, fb, ud, yaw = direction_to_rc(direction)
@@ -78,7 +83,8 @@ def run_tracking(video_path, webcam=False, force_sim=False, preset=None):
             drone.send_rc_control(lr, fb, ud, yaw)
 
             mode_label = "SIMULATOR" if simulated else "DRONE LIVE"
-            draw_hud(stacked, mode_label, drone.get_battery())
+            state_text = f"TRACKING: {target.label}" if target.found else "SEARCHING TARGET"
+            draw_hud(stacked, f"{mode_label} | {state_text}", drone.get_battery())
             cv2.imshow(win, stacked)
 
             key = cv2.waitKey(1) & 0xFF
@@ -112,6 +118,8 @@ def run_color(video_path, webcam=False, preset=None):
     win = "Color Object Tracking"
     cv2.namedWindow(win, cv2.WINDOW_NORMAL)
     last_dir = Direction.NONE
+    tracker = MovingTargetTracker()
+    target_label = getattr(active_preset, "target_label", "AUTO")
 
     try:
         while True:
@@ -128,8 +136,11 @@ def run_color(video_path, webcam=False, preset=None):
             cal.update()
             stacked, target, direction = process_frame(
                 frame, cal.hsv, cal.edge, cal.min_area, last_dir,
+                tracker=tracker, target_label=target_label,
             )
             last_dir = direction
+            state_text = f"TRACKING: {target.label}" if target.found else "SEARCHING TARGET"
+            draw_hud(stacked, f"CALIBRATION | {state_text}", 100)
             cv2.imshow(win, stacked)
 
             key = cv2.waitKey(1) & 0xFF
@@ -197,28 +208,26 @@ def main():
     elif args.mode:
         mode = args.mode
 
-    # Resolve video source and vision preset
+    # Resolve video source and vision preset (Simplified Universal Tracker)
     if args.webcam:
         video = None
-        if args.preset:
-            preset = PRESETS.get(args.preset, PRESETS["aircraft"])
-        else:
-            preset = PRESETS["aircraft"]
-            print("[INFO] Webcam Mode: Defaulting to aircraft tracking preset ('aircraft').")
-            print("[INFO] To track a yellow-green demo ball instead, pass: --preset default\n")
+        preset = PRESETS.get(args.preset, PRESETS["universal"])
+        print("[INFO] Webcam Mode: Universal Aerial Target Tracker active.")
+        print("       Real-time dynamic tracking enabled for moving planes, tanks, choppers, and vehicles.\n")
     elif args.video:
         video = find_asset(args.video) or args.video
         preset = PRESETS.get(args.preset) if args.preset else get_preset_for_video(video)
     elif args.preset:
-        preset = PRESETS.get(args.preset, PRESETS["default"])
-        default_video_name = preset.default_video or "aircraft_tracking.mp4"
+        preset = PRESETS.get(args.preset, PRESETS["universal"])
+        default_video_name = preset.default_video or "tank_tracking.mp4"
         video = find_asset(default_video_name)
     else:
-        preset = PRESETS["military_tracking"]
-        video = find_asset(preset.default_video or "aircraft_tracking.mp4")
+        # Default: Universal Tracker
+        preset = PRESETS["universal"]
+        video = find_asset(preset.default_video or "tank_tracking.mp4")
 
     print(f"Starting Aerial Target Tracking [{mode.upper()}]")
-    print(f"Preset: {preset.name} — {preset.description}")
+    print(f"Engine: {preset.name.upper()} — {preset.description}")
     print("Controls: 'v' toggle video/webcam · 'q'/Esc quit\n")
 
     if mode == "color":

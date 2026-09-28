@@ -17,15 +17,15 @@ HSV_HUE_MIN, HSV_HUE_MAX = 29, 65
 HSV_SAT_MIN, HSV_SAT_MAX = 85, 255
 HSV_VAL_MIN, HSV_VAL_MAX = 60, 255
 
-# Canny edge-detection & contour thresholds
-CANNY_THRESH1 = 166
-CANNY_THRESH2 = 171
-MIN_CONTOUR_AREA = 1000
-MAX_CONTOUR_AREA = 30000
+# Canny edge-detection & contour thresholds (tuned for anti-clutter tracking)
+CANNY_THRESH1 = 55
+CANNY_THRESH2 = 140
+MIN_CONTOUR_AREA = 250
+MAX_CONTOUR_AREA = 38000
 
 # Gaussian blur / morphology kernel sizes
-BLUR_KERNEL: Tuple[int, int] = (5, 5)
-BLUR_SIGMA: float = 1.0
+BLUR_KERNEL: Tuple[int, int] = (7, 7)
+BLUR_SIGMA: float = 1.5
 DILATE_KERNEL: Tuple[int, int] = (3, 3)
 
 # ── Flight-control Speeds ────────────────────────────────────────────
@@ -58,9 +58,25 @@ class VisionPreset:
     min_area: int
     max_area: int = 40000
     default_video: Optional[str] = None
+    target_label: str = "AUTO"
+
+
+# Universal Preset: Auto-detects Moving Target vs Stationary Target
+UNIVERSAL_PRESET = VisionPreset(
+    name="universal",
+    description="Universal Aerial Target Tracker (Moving Target & Static Target Lock)",
+    hsv_bounds=(0, 180, 0, 255, 0, 255),
+    edge_thresholds=(55, 140),
+    min_area=250,
+    max_area=38000,
+    default_video="aircraft_tracking.mp4",
+    target_label="TARGET",
+)
 
 
 PRESETS: Dict[str, VisionPreset] = {
+    # ── Primary Unified Trackers ──
+    "universal": UNIVERSAL_PRESET,
     "default": VisionPreset(
         name="default",
         description="Yellow-Green target (demo ball / bright object)",
@@ -68,22 +84,86 @@ PRESETS: Dict[str, VisionPreset] = {
         edge_thresholds=(166, 171),
         min_area=1000,
         default_video="drone_target_tracking.mp4",
+        target_label="DEMO BALL",
+    ),
+    # ── Target-specific Profiles & Compatibility Aliases ──
+    "tank": VisionPreset(
+        name="tank",
+        description="Armored tank & ground target tracking",
+        hsv_bounds=(0, 180, 0, 255, 0, 255),
+        edge_thresholds=(55, 140),
+        min_area=250,
+        max_area=38000,
+        default_video="aircraft_tracking.mp4",
+        target_label="TARGET",
+    ),
+    "military_vehicle": VisionPreset(
+        name="military_vehicle",
+        description="Tactical military vehicle & convoy tracking",
+        hsv_bounds=(0, 180, 0, 255, 0, 255),
+        edge_thresholds=(55, 140),
+        min_area=250,
+        max_area=38000,
+        default_video="aircraft_tracking.mp4",
+        target_label="TARGET",
+    ),
+    "helicopter": VisionPreset(
+        name="helicopter",
+        description="Rotary-wing aircraft / helicopter tracking",
+        hsv_bounds=(0, 180, 0, 255, 0, 255),
+        edge_thresholds=(55, 140),
+        min_area=250,
+        max_area=38000,
+        default_video="aircraft_tracking.mp4",
+        target_label="TARGET",
     ),
     "aircraft": VisionPreset(
         name="aircraft",
-        description="Aerial fighter jet & aircraft tracking (high-contrast contour lock)",
+        description="Aerial fighter jet & aircraft tracking",
         hsv_bounds=(0, 180, 0, 255, 0, 255),
         edge_thresholds=(40, 120),
         min_area=80,
         default_video="aircraft_tracking.mp4",
+        target_label="TARGET",
+    ),
+    "moving_object": VisionPreset(
+        name="moving_object",
+        description="Generic moving target tracker",
+        hsv_bounds=(0, 180, 0, 255, 0, 255),
+        edge_thresholds=(55, 140),
+        min_area=250,
+        max_area=38000,
+        default_video="aircraft_tracking.mp4",
+        target_label="TARGET",
+    ),
+    "moving_tank": VisionPreset(
+        name="moving_tank",
+        description="Armored tank tracking",
+        hsv_bounds=(0, 180, 0, 255, 0, 255),
+        edge_thresholds=(55, 140),
+        min_area=250,
+        max_area=38000,
+        default_video="aircraft_tracking.mp4",
+        target_label="TARGET",
+    ),
+    "tactical_vehicle": VisionPreset(
+        name="tactical_vehicle",
+        description="Tactical military vehicle tracking",
+        hsv_bounds=(0, 180, 0, 255, 0, 255),
+        edge_thresholds=(55, 140),
+        min_area=250,
+        max_area=38000,
+        default_video="aircraft_tracking.mp4",
+        target_label="TARGET",
     ),
     "military_tracking": VisionPreset(
         name="military_tracking",
-        description="MQ-9 onboard camera HUD targeting aircraft / reticle",
+        description="MQ-9 onboard camera HUD targeting reticle",
         hsv_bounds=(0, 180, 0, 255, 0, 255),
         edge_thresholds=(40, 120),
         min_area=80,
         default_video="aircraft_tracking.mp4",
+        target_label="TARGET",
     ),
     "military_recon": VisionPreset(
         name="military_recon",
@@ -92,6 +172,7 @@ PRESETS: Dict[str, VisionPreset] = {
         edge_thresholds=(40, 120),
         min_area=600,
         default_video="reaper_recon.mp4",
+        target_label="TARGET",
     ),
     "sky_target": VisionPreset(
         name="sky_target",
@@ -100,6 +181,7 @@ PRESETS: Dict[str, VisionPreset] = {
         edge_thresholds=(40, 120),
         min_area=100,
         default_video="aircraft_tracking.mp4",
+        target_label="TARGET",
     ),
     "sky_uav": VisionPreset(
         name="sky_uav",
@@ -108,6 +190,7 @@ PRESETS: Dict[str, VisionPreset] = {
         edge_thresholds=(40, 120),
         min_area=100,
         default_video="aircraft_tracking.mp4",
+        target_label="TARGET",
     ),
 }
 
@@ -117,6 +200,10 @@ def get_preset_for_video(video_path: Optional[str]) -> VisionPreset:
     if not video_path:
         return PRESETS["default"]
     lower = os.path.basename(video_path).lower()
+    if "tank" in lower:
+        return PRESETS["tank"]
+    if "vehicle" in lower or "convoy" in lower or "apc" in lower or "truck" in lower:
+        return PRESETS["military_vehicle"]
     if "aircraft" in lower:
         return PRESETS["military_tracking"]
     if "reaper" in lower or "recon" in lower:

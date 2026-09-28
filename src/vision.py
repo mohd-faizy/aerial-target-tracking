@@ -41,7 +41,7 @@ class EdgeThresholds:
 
 @dataclass
 class TargetInfo:
-    """Result of contour analysis — centroid, bounding box, area."""
+    """Result of contour analysis — centroid, bounding box, area, and motion telemetry."""
     found: bool = False
     cx: int = 0
     cy: int = 0
@@ -51,6 +51,103 @@ class TargetInfo:
     h: int = 0
     area: float = 0.0
     contour: Optional[np.ndarray] = None
+    label: str = "TARGET"
+    vx: float = 0.0
+    vy: float = 0.0
+    speed: float = 0.0
+    heading_deg: float = 0.0
+
+
+class MovingTargetTracker:
+    """
+    Maintains motion history and estimates target velocity, heading,
+    and trajectory breadcrumbs across video frames with jump rejection
+    and exponential velocity smoothing.
+    """
+    def __init__(self, max_history: int = 15):
+        self.max_history = max_history
+        self.trajectory: List[Tuple[int, int]] = []
+        self.prev_cx: Optional[int] = None
+        self.prev_cy: Optional[int] = None
+        self.smooth_vx: float = 0.0
+        self.smooth_vy: float = 0.0
+
+    def update(self, target: TargetInfo, target_label: Optional[str] = None) -> TargetInfo:
+        if target_label:
+            target.label = target_label
+
+        if not target.found:
+            self.trajectory.clear()
+            self.prev_cx = None
+            self.prev_cy = None
+            self.smooth_vx = 0.0
+            self.smooth_vy = 0.0
+            return target
+
+        if self.prev_cx is not None and self.prev_cy is not None:
+            raw_vx = float(target.cx - self.prev_cx)
+            raw_vy = float(target.cy - self.prev_cy)
+            hop_dist = float(np.hypot(raw_vx, raw_vy))
+
+            # Reject teleportation jumps / contour re-acquisitions (> 65 px in 1 frame)
+            if hop_dist > 65.0:
+                self.trajectory.clear()
+                self.smooth_vx = 0.0
+                self.smooth_vy = 0.0
+                target.vx = 0.0
+                target.vy = 0.0
+                target.speed = 0.0
+            else:
+                # Exponential moving average smoothing for velocity
+                self.smooth_vx = 0.35 * raw_vx + 0.65 * self.smooth_vx
+                self.smooth_vy = 0.35 * raw_vy + 0.65 * self.smooth_vy
+                target.vx = self.smooth_vx
+                target.vy = self.smooth_vy
+                target.speed = min(45.0, float(np.hypot(self.smooth_vx, self.smooth_vy)))
+                if target.speed > 1.2:
+                    target.heading_deg = float(np.degrees(np.arctan2(self.smooth_vy, self.smooth_vx))) % 360.0
+
+        self.prev_cx = target.cx
+        self.prev_cy = target.cy
+        self.trajectory.append((target.cx, target.cy))
+        if len(self.trajectory) > self.max_history:
+            self.trajectory.pop(0)
+
+        return target
+
+    @property
+    def smooth_speed(self) -> float:
+        return float(np.hypot(self.smooth_vx, self.smooth_vy))
+
+    def reset(self) -> None:
+        self.trajectory.clear()
+        self.prev_cx = None
+        self.prev_cy = None
+        self.smooth_vx = 0.0
+        self.smooth_vy = 0.0
+
+
+def classify_target(
+    w: int = 0,
+    h: int = 0,
+    area: float = 0.0,
+    cx: int = 0,
+    cy: int = 0,
+    speed: float = 0.0,
+    requested_mode: str = "AUTO",
+) -> str:
+    """
+    Identifies target tracking state. Returns 'MOVING TARGET' if in motion (speed > 1.2),
+    or 'TARGET' when stationary / hovering. Honors explicit user override if provided.
+    """
+    if isinstance(speed, str):
+        requested_mode = speed
+        speed = 0.0
+
+    if requested_mode and requested_mode not in ("AUTO", "TARGET", "MOVING TARGET", ""):
+        return requested_mode
+
+    return "MOVING TARGET" if speed > 1.2 else "TARGET"
 
 
 class Direction(IntEnum):
@@ -86,12 +183,18 @@ def apply_hsv_mask(img: np.ndarray, bounds: HSVBounds) -> Tuple[np.ndarray, np.n
 
 
 def detect_edges(img: np.ndarray, thresh: EdgeThresholds) -> np.ndarray:
-    """Blur → grayscale → Canny → dilate.  Returns dilated binary edge image."""
+    """
+    Gaussian blur -> Grayscale -> Canny edge detection -> Morphological closing.
+    Suppresses fine high-frequency texture (grass, dirt, noise) while preserving
+    structural silhouettes of aircraft, helicopters, tanks, and vehicles.
+    """
     blur = cv2.GaussianBlur(img, BLUR_KERNEL, BLUR_SIGMA)
     gray = cv2.cvtColor(blur, cv2.COLOR_BGR2GRAY)
     canny = cv2.Canny(gray, thresh.threshold1, thresh.threshold2)
+    close_kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    closed = cv2.morphologyEx(canny, cv2.MORPH_CLOSE, close_kernel)
     kernel = np.ones(DILATE_KERNEL, np.uint8)
-    return cv2.dilate(canny, kernel, iterations=1)
+    return cv2.dilate(closed, kernel, iterations=1)
 
 
 def detect_target(
@@ -99,17 +202,27 @@ def detect_target(
     min_area: float,
     max_area: float = 45000.0,
 ) -> TargetInfo:
-    """Find the best candidate contour exceeding *min_area*, rejecting border & screen artifacts."""
-    # Use RETR_TREE so targets inside screens, phone displays, or window frames are not discarded
+    """Find the best candidate contour exceeding *min_area*, rejecting border, screen, and grass clutter."""
     contours, _ = cv2.findContours(edge_img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     fh, fw = edge_img.shape[:2]
+    hw, hh = fw // 2, fh // 2
 
-    # Pass 1: Smart filtering (excludes screen borders, phone bezels, letterboxes, and wide horizon/wing bands)
-    for cnt in sorted(contours, key=cv2.contourArea, reverse=True):
+    candidates = []
+
+    # Pass 1: Smart filtering and candidate scoring
+    for cnt in contours:
         area = cv2.contourArea(cnt)
         if area < min_area or area > max_area:
             continue
         peri = cv2.arcLength(cnt, True)
+        if peri <= 0:
+            continue
+
+        # Reject high-frequency jagged grass, foliage, and textured dirt loops
+        isoperimetric = (peri * peri) / max(area, 1.0)
+        if isoperimetric > 62.0:
+            continue
+
         approx = cv2.approxPolyDP(cnt, 0.02 * peri, True)
         x, y, w, h = cv2.boundingRect(approx)
 
@@ -130,7 +243,25 @@ def detect_target(
         if area > 10000 and len(approx) == 4 and solidity > 0.85:
             continue
 
-        return TargetInfo(True, x + w // 2, y + h // 2, x, y, w, h, area, cnt)
+        cx, cy = x + w // 2, y + h // 2
+
+        # Candidate quality score:
+        # 1. Base score is contour area
+        # 2. Solidity weight: solid vehicles (tanks, APCs) score much higher than hollow/ragged noise
+        # 3. Distance from deadzone center: actively tracked targets are near center or deadzone
+        dist_from_center = float(np.hypot(cx - hw, cy - hh))
+        score = float(area) * (1.0 + 3.0 * min(solidity, 0.9)) / (1.0 + 0.0015 * dist_from_center)
+
+        # Heavy penalty for low-solidity noise hugging the extreme bottom of frame (foreground weeds/grass)
+        if (y + h) >= (fh - 30):
+            score *= 0.25
+
+        candidates.append((score, x, y, w, h, area, cnt, cx, cy))
+
+    if candidates:
+        candidates.sort(key=lambda c: c[0], reverse=True)
+        _, x, y, w, h, area, cnt, cx, cy = candidates[0]
+        return TargetInfo(True, cx, cy, x, y, w, h, area, cnt)
 
     # Pass 2: Fallback for synthetic patterns, indoor demo objects, and clean frames
     for cnt in sorted(contours, key=cv2.contourArea, reverse=True):
@@ -205,8 +336,13 @@ _DIR_RECT = {
 }
 
 
-def draw_target_overlay(img: np.ndarray, target: TargetInfo, direction: Direction) -> None:
-    """Draw contour, bounding box, vector line, and direction cue on *img*."""
+def draw_target_overlay(
+    img: np.ndarray,
+    target: TargetInfo,
+    direction: Direction,
+    trajectory: Optional[Sequence[Tuple[int, int]]] = None,
+) -> None:
+    """Draw tactical HUD: contour, corner brackets, crosshair, motion vector, trajectory, and status cues."""
     hw, hh = FRAME_WIDTH // 2, FRAME_HEIGHT // 2
 
     if not target.found:
@@ -214,15 +350,73 @@ def draw_target_overlay(img: np.ndarray, target: TargetInfo, direction: Directio
                     cv2.FONT_HERSHEY_COMPLEX, 0.8, (0, 255, 255), 2)
         return
 
-    if target.contour is not None:
-        cv2.drawContours(img, [target.contour], -1, (255, 0, 255), 3)
-    cv2.line(img, (hw, hh), (target.cx, target.cy), (0, 0, 255), 3)
-    cv2.rectangle(img, (target.x, target.y),
-                  (target.x + target.w, target.y + target.h), (0, 255, 0), 3)
-    cv2.putText(img, f"Area: {int(target.area)}",
-                (target.x + target.w + 10, target.y + 25),
-                cv2.FONT_HERSHEY_COMPLEX, 0.6, (0, 255, 0), 2)
+    # Render motion trajectory history breadcrumbs without teleport lines
+    if trajectory and len(trajectory) >= 2:
+        for idx in range(len(trajectory) - 1):
+            p1, p2 = trajectory[idx], trajectory[idx + 1]
+            if float(np.hypot(p2[0] - p1[0], p2[1] - p1[1])) < 45.0:
+                cv2.line(img, p1, p2, (0, 200, 240), 1, cv2.LINE_AA)
+        for idx, pt in enumerate(trajectory):
+            radius = 2 if idx < len(trajectory) - 3 else 3
+            cv2.circle(img, pt, radius, (0, 230, 255), -1)
 
+    # Draw contour outline
+    if target.contour is not None:
+        cv2.drawContours(img, [target.contour], -1, (255, 0, 255), 2)
+
+    # Center-to-target tracking vector
+    cv2.line(img, (hw, hh), (target.cx, target.cy), (0, 0, 255), 2)
+
+    # Reticle crosshair on target centroid
+    cr_size = 8
+    cv2.line(img, (target.cx - cr_size, target.cy), (target.cx + cr_size, target.cy), (0, 255, 255), 2)
+    cv2.line(img, (target.cx, target.cy - cr_size), (target.cx, target.cy + cr_size), (0, 255, 255), 2)
+
+    # Tactical corner brackets bounding box
+    bx, by, bw, bh = target.x, target.y, target.w, target.h
+    cv2.rectangle(img, (bx, by), (bx + bw, by + bh), (0, 180, 0), 1)
+
+    c_len = max(6, min(14, min(bw, bh) // 4))
+    bracket_color = (0, 255, 0)
+    # top-left
+    cv2.line(img, (bx, by), (bx + c_len, by), bracket_color, 2)
+    cv2.line(img, (bx, by), (bx, by + c_len), bracket_color, 2)
+    # top-right
+    cv2.line(img, (bx + bw, by), (bx + bw - c_len, by), bracket_color, 2)
+    cv2.line(img, (bx + bw, by), (bx + bw, by + c_len), bracket_color, 2)
+    # bottom-left
+    cv2.line(img, (bx, by + bh), (bx + c_len, by + bh), bracket_color, 2)
+    cv2.line(img, (bx, by + bh), (bx, by + bh - c_len), bracket_color, 2)
+    # bottom-right
+    cv2.line(img, (bx + bw, by + bh), (bx + bw - c_len, by + bh), bracket_color, 2)
+    cv2.line(img, (bx + bw, by + bh), (bx + bw, by + bh - c_len), bracket_color, 2)
+
+    # Target classification badge & telemetry
+    badge = f"[{target.label}]"
+    cv2.putText(img, badge, (bx, max(20, by - 8)),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.55, (0, 255, 0), 2)
+    cv2.putText(img, f"Area: {int(target.area)}",
+                (bx + bw + 8, by + 18),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 0), 1)
+
+    # Speed & Heading vector if moving
+    if target.speed > 1.2:
+        spd_kmh = min(110, int(target.speed * 2.2))
+        cv2.putText(img, f"SPD: {spd_kmh} km/h",
+                    (bx + bw + 8, by + 34),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 1)
+        cv2.putText(img, f"HDG: {int(target.heading_deg):03d}\u00b0",
+                    (bx + bw + 8, by + 50),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 255, 255), 1)
+
+        # Bounded velocity heading arrow (max 28px length)
+        arrow_len = min(28.0, max(10.0, target.speed * 2.0))
+        angle = np.radians(target.heading_deg)
+        tip_x = int(target.cx + arrow_len * np.cos(angle))
+        tip_y = int(target.cy + arrow_len * np.sin(angle))
+        cv2.arrowedLine(img, (target.cx, target.cy), (tip_x, tip_y), (0, 255, 255), 2, tipLength=0.35)
+
+    # Guidance direction cues
     if direction in _DIR_LABEL:
         cv2.putText(img, _DIR_LABEL[direction], (20, 50),
                     cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 255), 3)
@@ -233,12 +427,12 @@ def draw_target_overlay(img: np.ndarray, target: TargetInfo, direction: Directio
             sub = img[y1:y2, x1:x2]
             red_tint = np.zeros_like(sub)
             red_tint[:] = (0, 0, 255)
-            # Semi-transparent red tint (28% red, 72% original feed) so targets remain visible
+            # Semi-transparent red tint (28% red, 72% original feed)
             cv2.addWeighted(red_tint, 0.28, sub, 0.72, 0, sub)
             cv2.rectangle(img, (x1, y1), (x2, y2), (0, 0, 255), 2)
     else:
-        cv2.putText(img, " LOCKED ON TARGET ", (20, 50),
-                    cv2.FONT_HERSHEY_COMPLEX, 1, (0, 255, 0), 2)
+        cv2.putText(img, f" LOCKED: {target.label} ", (20, 50),
+                    cv2.FONT_HERSHEY_COMPLEX, 0.9, (0, 255, 0), 2)
 
 
 def draw_hud(img: np.ndarray, label: str, battery: int) -> None:
@@ -270,6 +464,8 @@ def process_frame(
     edge: EdgeThresholds,
     min_area: float,
     prev_direction: Direction = Direction.NONE,
+    tracker: Optional[MovingTargetTracker] = None,
+    target_label: str = "AUTO",
 ) -> Tuple[np.ndarray, TargetInfo, Direction]:
     """
     Run full vision pipeline on one frame.
@@ -282,9 +478,31 @@ def process_frame(
     _, result = apply_hsv_mask(img, hsv)
     edges = detect_edges(result, edge)
     target = detect_target(edges, min_area)
+
+    if tracker is not None:
+        target = tracker.update(target)
+
+    if target.found:
+        target.label = classify_target(
+            target.w,
+            target.h,
+            target.area,
+            target.cx,
+            target.cy,
+            speed=target.speed,
+            requested_mode=target_label,
+        )
+    else:
+        target.label = target_label
+
     direction = compute_direction(target)
 
-    draw_target_overlay(contour_img, target, direction if target.found else prev_direction)
+    draw_target_overlay(
+        contour_img,
+        target,
+        direction if target.found else prev_direction,
+        trajectory=tracker.trajectory if tracker is not None else None,
+    )
     draw_deadzone_grid(contour_img)
 
     stacked = stack_images(0.8, ([img, result], [edges, contour_img]))
