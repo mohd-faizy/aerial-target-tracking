@@ -4,3 +4,6 @@ opencv-contrib-python>=4.8.0
 
 # Scientific computing & multi-dimensional array operations
 numpy>=1.24.0
+
+# Deep Learning Object Detection (YOLO)
+ultralytics>=8.0.0

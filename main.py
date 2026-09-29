@@ -39,15 +39,13 @@ def run_tracking(video_path, webcam=False, force_sim=False, preset=None):
 
     if simulated:
         print("\n" + "=" * 60)
-        print(" [INFO] No physical drone connected on network.")
-        print(" [INFO] Running in Drone Flight Simulation & Demo Video mode!")
-        print(f" [INFO] Demo Video: {video_path or 'Webcam'}")
-        print(f" [INFO] Vision Preset: {active_preset.name} ({active_preset.description})")
-        print(" [INFO] Controls: [V] Toggle Demo Video / Webcam | [Q] Quit")
+        print(" [INFO] Universal Target Tracker Initialized")
+        print(f" [INFO] Video Source: {video_path or 'Webcam'}")
+        print(f" [INFO] Vision Engine: {active_preset.name} ({active_preset.description})")
+        print(" [INFO] Controls: [Q] Quit")
         print("=" * 60 + "\n")
 
     drone.connect()
-    print(f"Drone Battery: {drone.get_battery()}%")
     drone.streamoff()
     drone.streamon()
 
@@ -56,6 +54,7 @@ def run_tracking(video_path, webcam=False, force_sim=False, preset=None):
 
     win = "Autonomous Drone Object Tracking"
     cv2.namedWindow(win, cv2.WINDOW_NORMAL)
+    cv2.resizeWindow(win, 1024, 768)
 
     taken_off = False
     last_dir = Direction.NONE
@@ -82,12 +81,11 @@ def run_tracking(video_path, webcam=False, force_sim=False, preset=None):
 
             drone.send_rc_control(lr, fb, ud, yaw)
 
-            mode_label = "SIMULATOR" if simulated else "DRONE LIVE"
             state_text = f"TRACKING: {target.label}" if target.found else "SEARCHING TARGET"
-            draw_hud(stacked, f"{mode_label} | {state_text}", drone.get_battery())
+            draw_hud(stacked, state_text, 100)
             cv2.imshow(win, stacked)
 
-            key = cv2.waitKey(1) & 0xFF
+            key = cv2.waitKey(30) & 0xFF
             if key in (ord("q"), ord("Q"), 27) or not Calibration.window_open(win):
                 drone.land()
                 break
@@ -143,7 +141,7 @@ def run_color(video_path, webcam=False, preset=None):
             draw_hud(stacked, f"CALIBRATION | {state_text}", 100)
             cv2.imshow(win, stacked)
 
-            key = cv2.waitKey(1) & 0xFF
+            key = cv2.waitKey(30) & 0xFF
             if key in (ord("q"), ord("Q"), 27) or not Calibration.window_open(win):
                 break
     finally:

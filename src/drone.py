@@ -162,13 +162,10 @@ class SimulatedDrone(BaseDrone):
             self.cap.release()
         if self.use_webcam:
             self.cap = cv2.VideoCapture(0)
-            print("[SIMULATOR] Switched to live webcam.")
         elif self.demo_video and os.path.exists(self.demo_video):
             self.cap = cv2.VideoCapture(self.demo_video)
-            print(f"[SIMULATOR] Playing demo video: {os.path.basename(self.demo_video)}")
         else:
             self.cap = cv2.VideoCapture(0)
-            print("[SIMULATOR] Demo video not found; using webcam.")
 
     def toggle_source(self):
         """Switch between demo video and webcam."""
@@ -176,7 +173,6 @@ class SimulatedDrone(BaseDrone):
         self._open_source()
 
     def connect(self) -> bool:
-        print("[SIMULATOR] Connected to Virtual Drone (Simulation Mode).")
         return True
 
     def get_battery(self) -> int:
@@ -190,19 +186,17 @@ class SimulatedDrone(BaseDrone):
 
     def takeoff(self):
         self.is_flying = True
-        print("[SIMULATOR] Takeoff command received! Hovering at 1.2m.")
 
     def land(self):
         self.is_flying = False
         self.left_right_velocity = self.for_back_velocity = 0
         self.up_down_velocity = self.yaw_velocity = 0
-        print("[SIMULATOR] Land command received! Safely landed.")
 
     def rotate_clockwise(self, deg: int):
-        print(f"[SIMULATOR] Rotate clockwise {deg}°")
+        pass
 
     def move_left(self, cm: int):
-        print(f"[SIMULATOR] Move left {cm} cm")
+        pass
 
     def send_rc_control(self, lr, fb, ud, yaw):
         self.left_right_velocity, self.for_back_velocity = lr, fb

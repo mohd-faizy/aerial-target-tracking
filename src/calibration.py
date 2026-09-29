@@ -36,24 +36,10 @@ class Calibration:
 
     def init_windows(self) -> None:
         """Create the HSV and Parameters trackbar windows."""
-        try:
-            cv2.namedWindow("HSV", cv2.WINDOW_NORMAL)
-            cv2.resizeWindow("HSV", 640, 240)
-            cv2.createTrackbar("HUE Min",   "HSV", self.hsv.h_min, 179, _noop)
-            cv2.createTrackbar("HUE Max",   "HSV", self.hsv.h_max, 179, _noop)
-            cv2.createTrackbar("SAT Min",   "HSV", self.hsv.s_min, 255, _noop)
-            cv2.createTrackbar("SAT Max",   "HSV", self.hsv.s_max, 255, _noop)
-            cv2.createTrackbar("VALUE Min", "HSV", self.hsv.v_min, 255, _noop)
-            cv2.createTrackbar("VALUE Max", "HSV", self.hsv.v_max, 255, _noop)
-
-            cv2.namedWindow("Parameters", cv2.WINDOW_NORMAL)
-            cv2.resizeWindow("Parameters", 640, 240)
-            cv2.createTrackbar("Threshold1", "Parameters", self.edge.threshold1, 255, _noop)
-            cv2.createTrackbar("Threshold2", "Parameters", self.edge.threshold2, 255, _noop)
-            cv2.createTrackbar("Area",       "Parameters", self.min_area, MAX_CONTOUR_AREA, _noop)
-            self._ready = True
-        except Exception as exc:
-            print(f"[WARN] Trackbar init failed: {exc}")
+        # [NOTE] Trackbar UI is now DISABLED.
+        # With the integration of YOLO Deep Learning and OpenCV CSRT pixel tracking,
+        # manual HSV tuning is obsolete and no longer required. The AI handles it autonomously.
+        self._ready = False
 
     def _get(self, name: str, win: str, fallback: int) -> int:
         if not self._ready:
