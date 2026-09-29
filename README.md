@@ -1,7 +1,7 @@
+# Aerial Target Tracking
+
+
 <div align="center">
-
-# 🛸 Aerial Target Tracking
-
 <img src="asset/img/banner.png" width="800" alt="Aerial Target Tracking Banner" style="border-radius: 12px;" />
 
 <br/>
@@ -24,43 +24,43 @@
 
 <br/>
 
-[Key Features](#-key-features) · [Live Demos](#-live-demos) · [Quick Start](#-quick-start) · [Usage](#-usage--execution-modes) · [Architecture](#-system-architecture) · [CLI Reference](#-cli-reference) · [Tests](#-running-tests)
+[Key Features](#key-features) · [Live Demos](#live-demos) · [Quick Start](#quick-start) · [Usage](#usage--execution-modes) · [Architecture](#system-architecture) · [CLI Reference](#cli-reference) · [Tests](#running-tests)
 
 </div>
 
 ---
 
-## 📌 What Is This?
+## What Is This?
 
 A **modular, real-time computer vision pipeline** + **autonomous flight controller** for UAVs that:
 
-- 🎯 **Detects & locks** onto moving targets (tanks, vehicles, aircraft, drones)
-- 🧭 **Calculates** centroid offsets & generates corrective flight commands
-- 🛡️ **Falls back gracefully** — no drone? Runs a full flight simulator with looped video
-- ⚡ **Sets up in seconds** with `uv` (ultra-fast Python env manager)
+- **Detects & locks** onto moving targets (tanks, vehicles, aircraft, drones)
+- **Calculates** centroid offsets & generates corrective flight commands
+- **Falls back gracefully** — no drone? Runs a full flight simulator with looped video
+- **Sets up in seconds** with `uv` (ultra-fast Python env manager)
 
 > **Dual-Engine Architecture** — works with a **physical DJI Tello drone** (UDP telemetry) *or* a **virtual flight simulator** (offline video playback + simulated telemetry).
 
 ---
 
-## ✨ Key Features
+## Key Features
 
 | Feature | Description |
 |:--------|:------------|
-| 🎯 **Autonomous Target Tracking** | Real-time centroid isolation, Euclidean distance vectors, dynamic bounding boxes |
-| 🛡️ **Military Vehicle Tracking** | MTI, velocity vectors, heading estimation, tactical HUD brackets |
-| 🧭 **Deadzone Guidance Loop** | Configurable tolerance window → corrective pitch / roll / throttle / yaw |
-| 🎛️ **Live Calibration GUI** | OpenCV trackbars for HSV, Canny, and contour tuning — no restarts |
-| 🖼️ **2×2 Quad-View Canvas** | Raw feed + HSV mask + Canny edges + HUD overlay — all at once |
-| 🛰️ **Auto-Detect Presets** | Pre-tuned profiles: `tank`, `military_vehicle`, `aircraft`, `military_recon`, etc. |
-| 🔄 **Hot-Switch Sources** | Toggle between video file ↔ live webcam with `[V]` key mid-stream |
-| 🛡️ **Resilient Failover** | Auto hardware discovery → graceful fallback → one-key safe landing |
+| **Autonomous Target Tracking** | Real-time centroid isolation, Euclidean distance vectors, dynamic bounding boxes |
+| **Military Vehicle Tracking** | MTI, velocity vectors, heading estimation, tactical HUD brackets |
+| **Deadzone Guidance Loop** | Configurable tolerance window -> corrective pitch / roll / throttle / yaw |
+| **Live Calibration GUI** | OpenCV trackbars for HSV, Canny, and contour tuning — no restarts |
+| **2x2 Quad-View Canvas** | Raw feed + HSV mask + Canny edges + HUD overlay — all at once |
+| **Auto-Detect Presets** | Pre-tuned profiles: `tank`, `military_vehicle`, `aircraft`, `military_recon`, etc. |
+| **Hot-Switch Sources** | Toggle between video file <-> live webcam with `[V]` key mid-stream |
+| **Resilient Failover** | Auto hardware discovery -> graceful fallback -> one-key safe landing |
 
 ---
 
-## 🎬 Live Demos
+## Live Demos
 
-### 🏜️ Armored Tank Tracking
+### Armored Tank Tracking
 
 > Top-down aerial surveillance locking onto a moving MBT — velocity, heading & deadzone correction in real time.
 
@@ -70,7 +70,7 @@ A **modular, real-time computer vision pipeline** + **autonomous flight controll
 
 ---
 
-### ✈️ Aircraft & Reticle Intercept Tracking
+### Aircraft & Reticle Intercept Tracking
 
 > High-precision aircraft contour isolation with dynamic target lock telemetry & edge detection.
 
@@ -80,7 +80,7 @@ A **modular, real-time computer vision pipeline** + **autonomous flight controll
 
 ---
 
-### 🛰️ Aerial Reconnaissance & Horizon Surveillance
+### Aerial Reconnaissance & Horizon Surveillance
 
 > Fixed-wing UAV tracking against complex terrain, altitude gradients & shifting horizon lighting.
 
@@ -90,7 +90,7 @@ A **modular, real-time computer vision pipeline** + **autonomous flight controll
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -123,13 +123,13 @@ source .venv/bin/activate       # macOS/Linux
 uv run python main.py
 ```
 
-> 💡 **Pro tip:** Skip activation entirely — just use `uv run python main.py` directly!
+> **Tip:** Skip activation entirely — just use `uv run python main.py` directly!
 
 ---
 
-## 💻 Usage & Execution Modes
+## Usage & Execution Modes
 
-### 🎯 Universal Tracking (Default)
+### Universal Tracking (Default)
 
 ```bash
 uv run python main.py                                        # Auto-detect everything
@@ -138,7 +138,7 @@ uv run python main.py --video asset/videos/tank.mp4          # Specific video fi
 uv run python main.py --simulate                             # Force simulator mode
 ```
 
-### 🎛️ Vision Calibration (No Flight)
+### Vision Calibration (No Flight)
 
 ```bash
 uv run python main.py --mode color                           # Calibrate with default video
@@ -146,7 +146,7 @@ uv run python main.py --mode color --webcam                  # Calibrate with li
 uv run python main.py --mode color --video <path>            # Calibrate with custom video
 ```
 
-### 🧪 Hardware Flight Test
+### Hardware Flight Test
 
 ```bash
 uv run python main.py --mode flight-test                     # Connection & flight verification
@@ -154,25 +154,25 @@ uv run python main.py --mode flight-test                     # Connection & flig
 
 ---
 
-## ⌨️ Hotkeys
+## Hotkeys
 
 | Key | Action |
 |:---:|:-------|
-| `T` | **Cycle target profile** — `AUTO` → `TANK` → `MIL-VEHICLE` → `HELICOPTER` → `AIRCRAFT` → `MOVING OBJECT` |
-| `V` | **Toggle video source** — switch between demo video ↔ live webcam |
+| `T` | **Cycle target profile** — `AUTO` -> `TANK` -> `MIL-VEHICLE` -> `HELICOPTER` -> `AIRCRAFT` -> `MOVING OBJECT` |
+| `V` | **Toggle video source** — switch between demo video <-> live webcam |
 | `Q` | **Emergency land & exit** — safe drone landing + close all windows |
 | `ESC` | **Immediate exit** — release capture & network sockets |
 
 ---
 
-## 🎯 Auto-Classification Engine
+## Auto-Classification Engine
 
 The tracker **automatically classifies** targets — no manual preset required:
 
 | Target | ID Tag | How It's Detected |
 |:-------|:-------|:------------------|
-| **Tank / MBT** | `TANK [MBT]` | Compact armored silhouette · AR 1.05–2.25 · solidity ≥ 0.28 |
-| **Military Vehicle** | `MIL-VEHICLE` | Elongated chassis · AR > 2.25 · solidity ≥ 0.22 |
+| **Tank / MBT** | `TANK [MBT]` | Compact armored silhouette · AR 1.05–2.25 · solidity >= 0.28 |
+| **Military Vehicle** | `MIL-VEHICLE` | Elongated chassis · AR > 2.25 · solidity >= 0.22 |
 | **Helicopter** | `HELICOPTER` | Rotor span + tail boom · AR 1.25–2.8 · solidity 0.15–0.42 |
 | **Aircraft / Jet** | `AIRCRAFT` | Fixed-wing silhouette · aerodynamic wingspan · upper horizon |
 | **Moving Object** | `MOVING OBJECT` | Velocity vector > 2.2 px/frame · smoothed heading |
@@ -189,7 +189,7 @@ uv run python main.py --preset military_recon
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```mermaid
 flowchart TD
@@ -203,7 +203,7 @@ flowchart TD
     B -->|No| D["Virtual Simulator"]
 
     subgraph Vision ["Computer Vision Pipeline"]
-        C --> E["Frame Acquisition 640×480"]
+        C --> E["Frame Acquisition 640x480"]
         D --> E
         E --> F["HSV Color Thresholding"]
         F --> G["Gaussian Blur + Canny Edges"]
@@ -214,10 +214,10 @@ flowchart TD
 
     subgraph Control ["Deadzone Feedback Loop"]
         J --> K{"Inside<br/>Deadzone?"}
-        K -->|Left| L1["Yaw CCW ↶"]
-        K -->|Right| L2["Yaw CW ↷"]
-        K -->|Above| L3["Throttle UP ↑"]
-        K -->|Below| L4["Throttle DOWN ↓"]
+        K -->|Left| L1["Yaw CCW"]
+        K -->|Right| L2["Yaw CW"]
+        K -->|Above| L3["Throttle UP"]
+        K -->|Below| L4["Throttle DOWN"]
         K -->|Centered| L5["LOCKED ON"]
     end
 
@@ -227,11 +227,11 @@ flowchart TD
         L3 --> M
         L4 --> M
         L5 --> M
-        M --> N["2×2 Quad Canvas + HUD"]
+        M --> N["2x2 Quad Canvas + HUD"]
     end
 ```
 
-### 🔲 Quad-View Display Layout
+### Quad-View Display Layout
 
 ```
 ┌─────────────────────┬─────────────────────┐
@@ -245,7 +245,7 @@ flowchart TD
 
 ---
 
-## 📖 CLI Reference
+## CLI Reference
 
 ```
 usage: main.py [-h] [--mode {tracking,color,flight-test}]
@@ -263,11 +263,11 @@ Options:
 
 ---
 
-## 📡 Hardware Setup (DJI Tello)
+## Hardware Setup (DJI Tello)
 
-1. **Power on** the drone → wait for Wi-Fi indicator to flash
+1. **Power on** the drone -> wait for Wi-Fi indicator to flash
 2. **Connect** your PC to `TELLO-XXXXXX` Wi-Fi network
-3. **Launch** → `uv run python main.py`
+3. **Launch** -> `uv run python main.py`
 4. **Auto-discovery** handles the rest:
 
 ```
@@ -277,7 +277,7 @@ Host (Port 11111) ◄── H.264 Video ──────  Drone Video Driver
 
 ---
 
-## 📂 Project Structure
+## Project Structure
 
 ```
 aerial-target-tracking/
@@ -300,7 +300,7 @@ aerial-target-tracking/
 
 ---
 
-## 🧪 Running Tests
+## Running Tests
 
 ```bash
 uv run pytest -v
@@ -315,17 +315,17 @@ tests/test_all.py ....................                                   [100%]
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 1. **Fork** this repo
-2. **Branch** → `git checkout -b feature/amazing-feature`
-3. **Commit** → `git commit -m 'feat: Add amazing feature'`
-4. **Push** → `git push origin feature/amazing-feature`
-5. **PR** → Open a Pull Request
+2. **Branch** -> `git checkout -b feature/amazing-feature`
+3. **Commit** -> `git commit -m 'feat: Add amazing feature'`
+4. **Push** -> `git push origin feature/amazing-feature`
+5. **PR** -> Open a Pull Request
 
 ---
 
-## 📄 License
+## License
 
 Licensed under the **MIT License** — see [`LICENSE`](LICENSE) for details.
 
@@ -333,7 +333,7 @@ Licensed under the **MIT License** — see [`LICENSE`](LICENSE) for details.
 
 <div align="center">
 
-### 🔗 Connect
+### Connect
 
 [![Portfolio](https://img.shields.io/badge/Portfolio-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://mohdfaizy.vercel.app)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/mohd-faizy/)
@@ -341,9 +341,5 @@ Licensed under the **MIT License** — see [`LICENSE`](LICENSE) for details.
 [![Credly](https://img.shields.io/badge/Credly-FF6B00?style=for-the-badge&logo=credly&logoColor=white)](https://www.credly.com/users/mohd-faizy)
 [![Twitter](https://img.shields.io/badge/Twitter-1DA1F2?style=for-the-badge&logo=twitter&logoColor=white)](https://twitter.com/F4izy)
 [![Stack Exchange](https://img.shields.io/badge/Stack_Exchange-1E5397?style=for-the-badge&logo=stack-exchange&logoColor=white)](https://ai.stackexchange.com/users/36737/faizy)
-
-<br/>
-
-⭐ **If you found this useful, give it a star!** ⭐
 
 </div>
