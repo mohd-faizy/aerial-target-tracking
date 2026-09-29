@@ -137,7 +137,16 @@ class MovingTargetTracker:
     def is_coasting(self) -> bool:
         return self._coast_frames > 0
 
-    def update(self, target: TargetInfo, frame: np.ndarray, target_label: Optional[str] = None) -> TargetInfo:
+    def update(
+        self,
+        target: TargetInfo,
+        frame: Optional[np.ndarray] = None,
+        target_label: Optional[str] = None,
+    ) -> TargetInfo:
+        if isinstance(frame, str):
+            target_label = frame
+            frame = None
+
         if target_label:
             target.label = target_label
 
@@ -146,7 +155,7 @@ class MovingTargetTracker:
             self._kf.predict()
             
         # ── CSRT Pixel Tracking Pass ─────────────────────────────────
-        if self._csrt_active and self._csrt is not None:
+        if self._csrt_active and self._csrt is not None and frame is not None:
             success, box = self._csrt.update(frame)
             if success:
                 x, y, w, h = [int(v) for v in box]
@@ -166,7 +175,7 @@ class MovingTargetTracker:
                 self._csrt = None
 
         # ── Initialize CSRT if target found but not tracked ─────────
-        if target.found and not self._csrt_active:
+        if target.found and not self._csrt_active and frame is not None:
             # Prevent locking onto random background objects at the edge of the screen
             # Only lock on if YOLO found it, OR if the object is reasonably close to the center
             dist_from_center = np.hypot(target.cx - FRAME_WIDTH//2, target.cy - FRAME_HEIGHT//2)
@@ -184,7 +193,12 @@ class MovingTargetTracker:
 
         # ── Target NOT found this frame ──────────────────────────────
         if not target.found:
-            if self._tracking and self._coast_frames < self.max_coast and self._kf_initialized:
+            if (
+                frame is not None
+                and self._tracking
+                and self._coast_frames < self.max_coast
+                and self._kf_initialized
+            ):
                 # Coast: synthesise a target from the Kalman prediction
                 self._coast_frames += 1
                 pred = self._kf.statePost
@@ -225,12 +239,13 @@ class MovingTargetTracker:
             jump_limit = 90.0 + 3.0 * float(np.hypot(self.smooth_vx, self.smooth_vy))
 
             if hop_dist > jump_limit:
-                # Possible contour switch / teleport — only soft-reset velocity
-                self.smooth_vx *= 0.3
-                self.smooth_vy *= 0.3
-                target.vx = self.smooth_vx
-                target.vy = self.smooth_vy
-                target.speed = float(np.hypot(self.smooth_vx, self.smooth_vy))
+                # Teleport hop / contour switch: reset velocity and trajectory
+                self.smooth_vx = 0.0
+                self.smooth_vy = 0.0
+                self.trajectory.clear()
+                target.vx = 0.0
+                target.vy = 0.0
+                target.speed = 0.0
             else:
                 # Responsive EMA (α=0.55) — tracks direction changes quickly
                 alpha = 0.55
@@ -362,8 +377,8 @@ def detect_edges(img: np.ndarray, thresh: EdgeThresholds) -> np.ndarray:
 
 def detect_target(
     img: np.ndarray,
-    edge_img: np.ndarray,
-    min_area: float,
+    edge_img: Optional[np.ndarray] = None,
+    min_area: float = 250.0,
     max_area: float = 45000.0,
     skip_detection: bool = False,
 ) -> TargetInfo:
@@ -373,6 +388,16 @@ def detect_target(
     """
     if skip_detection:
         return TargetInfo()
+
+    # Support legacy signature: detect_target(edge_img, min_area)
+    if edge_img is None or isinstance(edge_img, (int, float)):
+        if isinstance(edge_img, (int, float)):
+            min_area = float(edge_img)
+        edge_img = img
+        if len(edge_img.shape) == 2:
+            img = cv2.cvtColor(edge_img, cv2.COLOR_GRAY2BGR)
+        else:
+            img = edge_img.copy()
 
     fh, fw = edge_img.shape[:2]
     hw, hh = fw // 2, fh // 2

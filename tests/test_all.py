@@ -25,7 +25,7 @@ class TestConfig(unittest.TestCase):
     def test_find_existing_assets(self):
         # Mission video files and banner image in reorganized asset structure
         for name in (
-            "drone_target_tracking.mp4",
+            "tank.mp4",
             "aircraft_tracking.mp4",
             "reaper_recon.mp4",
             "banner.png",
@@ -36,7 +36,7 @@ class TestConfig(unittest.TestCase):
 
         # Check optional GIF demos when added to asset/gifs
         for name in (
-            "drone_target_tracking.gif",
+            "tank.gif",
             "aircraft_tracking.gif",
             "reaper_recon.gif",
         ):
@@ -62,15 +62,15 @@ class TestConfig(unittest.TestCase):
     def test_preset_default_videos(self):
         self.assertEqual(PRESETS["military_tracking"].default_video, "aircraft_tracking.mp4")
         self.assertEqual(PRESETS["military_recon"].default_video, "reaper_recon.mp4")
-        self.assertEqual(PRESETS["tank"].default_video, "aircraft_tracking.mp4")
-        self.assertEqual(PRESETS["default"].default_video, "drone_target_tracking.mp4")
+        self.assertEqual(PRESETS["tank"].default_video, "tank.mp4")
+        self.assertEqual(PRESETS["default"].default_video, "tank.mp4")
 
 
 # ── Simulator ────────────────────────────────────────────────────────
 
 class TestSimulator(unittest.TestCase):
     def setUp(self):
-        self.drone = SimulatedDrone(demo_video=find_asset("drone_target_tracking.mp4"))
+        self.drone = SimulatedDrone(demo_video=find_asset("tank.mp4"))
 
     def tearDown(self):
         self.drone.close()

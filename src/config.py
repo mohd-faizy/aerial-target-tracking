@@ -83,7 +83,7 @@ PRESETS: Dict[str, VisionPreset] = {
         hsv_bounds=(29, 65, 85, 255, 60, 255),
         edge_thresholds=(166, 171),
         min_area=1000,
-        default_video="drone_target_tracking.mp4",
+        default_video="tank.mp4",
         target_label="DEMO BALL",
     ),
     # ── Target-specific Profiles & Compatibility Aliases ──
@@ -94,7 +94,7 @@ PRESETS: Dict[str, VisionPreset] = {
         edge_thresholds=(55, 140),
         min_area=250,
         max_area=38000,
-        default_video="aircraft_tracking.mp4",
+        default_video="tank.mp4",
         target_label="TARGET",
     ),
     "military_vehicle": VisionPreset(

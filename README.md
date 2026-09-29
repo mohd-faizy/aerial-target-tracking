@@ -193,41 +193,41 @@ uv run python main.py --preset military_recon
 
 ```mermaid
 flowchart TD
-    subgraph Input ["Video Capture Layer"]
-        A1["Physical Drone<br/>UDP 192.168.10.1:8889"] --> B{"Drone<br/>Connected?"}
-        A2["Simulated Video<br/>asset/videos/*.mp4"] --> B
-        A3["Live Webcam<br/>Device 0"] --> B
+    subgraph Input ["Video & Hardware Layer"]
+        A{"Auto-Discovery<br/>Hardware Check"}
+        A -->|Drone Reachable| B1["Hardware Drone<br/>UDP 192.168.10.1:8889"]
+        A -->|Offline / Fallback| B2["Virtual Simulator<br/>Video File or USB Webcam"]
+        B1 --> C["Video Stream Capture<br/>H.264 UDP / OpenCV"]
+        B2 --> C
     end
 
-    B -->|Yes| C["Hardware UDP Driver"]
-    B -->|No| D["Virtual Simulator"]
-
-    subgraph Vision ["Computer Vision Pipeline"]
-        C --> E["Frame Acquisition 640x480"]
-        D --> E
-        E --> F["HSV Color Thresholding"]
-        F --> G["Gaussian Blur + Canny Edges"]
-        G --> H["Morphological Dilation"]
-        H --> I["Contour Extraction & Filtering"]
-        I --> J["Centroid Calculation"]
+    subgraph Vision ["Computer Vision & Tracking Pipeline"]
+        C --> D["Frame Normalization<br/>640x480 Resolution"]
+        D --> E1["YOLOv8 Deep Learning<br/>Aircraft, Tanks, Vehicles"]
+        D --> E2["Classical CV Engine<br/>HSV Mask + Canny Edges + Contours"]
+        E1 --> F["Candidate Fusion & Target Extraction"]
+        E2 --> F
+        F --> G["Multi-Object Tracker<br/>Kalman Filter + CSRT Pixel Lock"]
+        G --> H["Target Classification & Telemetry<br/>Velocity, Heading & Tactical Tag"]
     end
 
-    subgraph Control ["Deadzone Feedback Loop"]
-        J --> K{"Inside<br/>Deadzone?"}
-        K -->|Left| L1["Yaw CCW"]
-        K -->|Right| L2["Yaw CW"]
-        K -->|Above| L3["Throttle UP"]
-        K -->|Below| L4["Throttle DOWN"]
-        K -->|Centered| L5["LOCKED ON"]
+    subgraph Control ["Deadzone Guidance Loop"]
+        H --> I{"Deadzone<br/>Evaluation"}
+        I -->|Target Left| J1["Yaw CCW (Rotate Left)"]
+        I -->|Target Right| J2["Yaw CW (Rotate Right)"]
+        I -->|Target High| J3["Throttle UP (Ascend)"]
+        I -->|Target Low| J4["Throttle DOWN (Descend)"]
+        I -->|Centered| J5["LOCKED ON (Stable Hover)"]
+        J1 --> K["RC Velocity Mapping<br/>lr, fb, ud, yaw"]
+        J2 --> K
+        J3 --> K
+        J4 --> K
+        J5 --> K
     end
 
-    subgraph Output ["Display & Telemetry"]
-        L1 --> M["RC Velocities"]
-        L2 --> M
-        L3 --> M
-        L4 --> M
-        L5 --> M
-        M --> N["2x2 Quad Canvas + HUD"]
+    subgraph Output ["Execution & Visualization"]
+        K --> L1["Flight Controller<br/>Send UDP / Sim Telemetry"]
+        H --> L2["2x2 Quad-View Canvas<br/>Camera, Thermal, Edges, HUD"]
     end
 ```
 
@@ -235,11 +235,11 @@ flowchart TD
 
 ```
 ┌─────────────────────┬─────────────────────┐
-│   Raw Camera Feed   │   HSV Masked View   │
-│   (unprocessed)     │   (color isolation) │
+│     CAMERA FEED     │  THERMAL DETECTION  │
+│  (raw camera feed)  │  (inferno heatmap)  │
 ├─────────────────────┼─────────────────────┤
-│   Dilated Canny     │   Target HUD +      │
-│   Edge Map          │   Flight Telemetry  │
+│    EDGE ANALYSIS    │    TRACKING HUD     │
+│   (colorized canny) │ (telemetry overlay) │
 └─────────────────────┴─────────────────────┘
 ```
 
